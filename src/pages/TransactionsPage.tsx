@@ -1,9 +1,10 @@
-import { useCart } from '../context/CartContext';
+import { useAppSelector } from '../store/hooks';
+import { selectAllTransactions } from '../store/selectors';
 import { Search, FileText, Download } from 'lucide-react';
 import { useState } from 'react';
 
 export default function TransactionsPage() {
-  const { state } = useCart();
+  const transactions = useAppSelector(selectAllTransactions);
   const [searchQuery, setSearchQuery] = useState('');
 
   return (
@@ -61,7 +62,7 @@ export default function TransactionsPage() {
           boxShadow: '0 2px 8px rgba(0,0,0,0.04)' 
         }}
       >
-        {state.transactions.length === 0 ? (
+        {transactions.length === 0 ? (
           <div className="flex flex-col items-center justify-center" style={{ padding: '48px 0' }}>
             <div className="rounded-full flex items-center justify-center" style={{ width: '64px', height: '64px', backgroundColor: '#f3f4f6', marginBottom: '16px' }}>
               <FileText style={{ width: '32px', height: '32px', color: '#9ca3af' }} />
@@ -84,8 +85,8 @@ export default function TransactionsPage() {
                 </tr>
               </thead>
               <tbody>
-                {state.transactions.slice().reverse().map((transaction, index) => (
-                  <tr key={transaction.id} style={{ borderBottom: index < state.transactions.length - 1 ? '1px solid #f3f4f6' : 'none' }}>
+                {transactions.slice().reverse().map((transaction, index) => (
+                  <tr key={transaction.id} style={{ borderBottom: index < transactions.length - 1 ? '1px solid #f3f4f6' : 'none' }}>
                     <td style={{ padding: '16px 20px' }}>
                       <span className="font-mono font-semibold" style={{ fontSize: '13px', padding: '4px 8px', borderRadius: '6px', color: '#111827', backgroundColor: '#f3f4f6' }}>
                         #{transaction.id.slice(-8)}

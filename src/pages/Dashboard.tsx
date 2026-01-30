@@ -1,13 +1,16 @@
 import { TrendingUp, ShoppingBag, DollarSign, Users, ArrowUpRight, ArrowDownRight } from 'lucide-react';
-import { useCart } from '../context/CartContext';
+import { useAppSelector } from '../store/hooks';
+import { selectAllTransactions, selectTotalRevenue, selectCustomerCount } from '../store/selectors';
 
 export default function Dashboard() {
-  const { state } = useCart();
+  const transactions = useAppSelector(selectAllTransactions);
+  const totalRevenue = useAppSelector(selectTotalRevenue);
+  const customerCount = useAppSelector(selectCustomerCount);
 
   const stats = [
     {
       title: "Today's Sales",
-      value: `$${state.transactions.reduce((sum, t) => sum + t.total, 0).toFixed(2)}`,
+      value: `$${totalRevenue.toFixed(2)}`,
       icon: DollarSign,
       change: '+12.5%',
       isPositive: true,
@@ -16,7 +19,7 @@ export default function Dashboard() {
     },
     {
       title: 'Total Orders',
-      value: state.transactions.length.toString(),
+      value: transactions.length.toString(),
       icon: ShoppingBag,
       change: '+8.2%',
       isPositive: true,
@@ -25,8 +28,8 @@ export default function Dashboard() {
     },
     {
       title: 'Avg. Order Value',
-      value: state.transactions.length > 0 
-        ? `$${(state.transactions.reduce((sum, t) => sum + t.total, 0) / state.transactions.length).toFixed(2)}`
+      value: transactions.length > 0 
+        ? `$${(totalRevenue / transactions.length).toFixed(2)}`
         : '$0.00',
       icon: TrendingUp,
       change: '+5.1%',
@@ -36,7 +39,7 @@ export default function Dashboard() {
     },
     {
       title: 'Active Customers',
-      value: '24',
+      value: customerCount.toString(),
       icon: Users,
       change: '-2.4%',
       isPositive: false,
@@ -99,7 +102,7 @@ export default function Dashboard() {
             View All →
           </button>
         </div>
-        {state.transactions.length === 0 ? (
+        {transactions.length === 0 ? (
           <div className="flex flex-col items-center justify-center" style={{ padding: '48px 0' }}>
             <div className="rounded-full flex items-center justify-center" style={{ width: '64px', height: '64px', backgroundColor: '#f3f4f6', marginBottom: '16px' }}>
               <ShoppingBag style={{ width: '32px', height: '32px', color: '#9ca3af' }} />
@@ -120,8 +123,8 @@ export default function Dashboard() {
                 </tr>
               </thead>
               <tbody>
-                {state.transactions.slice(-5).reverse().map((transaction, index) => (
-                  <tr key={transaction.id} style={{ borderBottom: index < state.transactions.slice(-5).length - 1 ? '1px solid #f3f4f6' : 'none' }}>
+                {transactions.slice(-5).reverse().map((transaction, index) => (
+                  <tr key={transaction.id} style={{ borderBottom: index < transactions.slice(-5).length - 1 ? '1px solid #f3f4f6' : 'none' }}>
                     <td style={{ padding: '16px 0' }}>
                       <span className="font-mono font-semibold" style={{ fontSize: '13px', color: '#111827' }}>#{transaction.id.slice(-6)}</span>
                     </td>

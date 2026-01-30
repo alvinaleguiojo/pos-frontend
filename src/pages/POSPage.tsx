@@ -1,21 +1,29 @@
 import { useState } from 'react';
-import { products, categories } from '../data/sampleData';
+import { categories } from '../data/sampleData';
 import ProductCard from '../components/ProductCard';
 import Cart from '../components/Cart';
-import { useCart } from '../context/CartContext';
+import { useAppDispatch, useAppSelector } from '../store/hooks';
+import { addItem } from '../store/slices/cartSlice';
+import { setSelectedCategory } from '../store/slices/productsSlice';
+import { selectFilteredProducts, selectSelectedCategory, selectCartItemCount } from '../store/selectors';
 import { ShoppingBag, ChevronLeft } from 'lucide-react';
+import type { Product } from '../types';
 
 export default function POSPage() {
-  const [selectedCategory, setSelectedCategory] = useState('All');
-  const [searchQuery] = useState('');
+  const dispatch = useAppDispatch();
   const [isCartExpanded, setIsCartExpanded] = useState(true);
-  const { addItem, state } = useCart();
+  
+  const filteredProducts = useAppSelector(selectFilteredProducts);
+  const selectedCategory = useAppSelector(selectSelectedCategory);
+  const cartItemCount = useAppSelector(selectCartItemCount);
 
-  const filteredProducts = products.filter(p => {
-    const matchesCategory = selectedCategory === 'All' || p.category === selectedCategory;
-    const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesCategory && matchesSearch;
-  });
+  const handleCategoryChange = (category: string) => {
+    dispatch(setSelectedCategory(category));
+  };
+
+  const handleAddToCart = (product: Product) => {
+    dispatch(addItem(product));
+  };
 
   const handleToggleDock = () => {
     setIsCartExpanded(!isCartExpanded);
@@ -30,7 +38,7 @@ export default function POSPage() {
           {categories.map((category) => (
             <button
               key={category.id}
-              onClick={() => setSelectedCategory(category.name)}
+              onClick={() => handleCategoryChange(category.name)}
               className="rounded-xl whitespace-nowrap font-semibold transition-all duration-200"
               style={{
                 padding: '12px 20px',
@@ -63,7 +71,7 @@ export default function POSPage() {
             <ProductCard
               key={product.id}
               product={product}
-              onAddToCart={addItem}
+              onAddToCart={handleAddToCart}
             />
           ))}
         </div>
@@ -108,7 +116,7 @@ export default function POSPage() {
           <div className="flex flex-col items-center" style={{ gap: '8px' }}>
             <ChevronLeft style={{ width: '20px', height: '20px', color: '#6366f1' }} />
             <ShoppingBag style={{ width: '22px', height: '22px', color: '#6366f1' }} />
-            {state.items.length > 0 && (
+            {cartItemCount > 0 && (
               <span 
                 className="rounded-full flex items-center justify-center font-bold"
                 style={{
@@ -119,7 +127,7 @@ export default function POSPage() {
                   fontSize: '11px',
                 }}
               >
-                {state.items.length}
+                {cartItemCount}
               </span>
             )}
           </div>

@@ -1,5 +1,8 @@
 import { Minus, Plus, Trash2, ShoppingBag, CreditCard, Banknote, Smartphone, ChevronRight } from 'lucide-react';
-import { useCart } from '../context/CartContext';
+import { useAppDispatch, useAppSelector } from '../store/hooks';
+import { removeItem, updateQuantity, clearCart } from '../store/slices/cartSlice';
+import { addTransaction } from '../store/slices/transactionsSlice';
+import { selectCartItems, selectSubtotal, selectTax, selectTotal } from '../store/selectors';
 import type { PaymentMethod } from '../types';
 import { useState } from 'react';
 
@@ -10,13 +13,30 @@ interface CartProps {
 }
 
 export default function Cart({ onToggleDock, isExpanded = true }: CartProps) {
-  const { state, removeItem, updateQuantity, clearCart, completeSale, getSubtotal, getTax, getTotal } = useCart();
+  const dispatch = useAppDispatch();
+  const items = useAppSelector(selectCartItems);
+  const subtotal = useAppSelector(selectSubtotal);
+  const tax = useAppSelector(selectTax);
+  const total = useAppSelector(selectTotal);
   const [selectedPayment, setSelectedPayment] = useState<PaymentMethod>('cash');
 
   const handleCheckout = () => {
-    if (state.items.length === 0) return;
-    completeSale(selectedPayment);
+    if (items.length === 0) return;
+    dispatch(addTransaction({ items, paymentMethod: selectedPayment }));
+    dispatch(clearCart());
     alert('Sale completed successfully!');
+  };
+
+  const handleUpdateQuantity = (productId: string, quantity: number) => {
+    dispatch(updateQuantity({ productId, quantity }));
+  };
+
+  const handleRemoveItem = (productId: string) => {
+    dispatch(removeItem(productId));
+  };
+
+  const handleClearCart = () => {
+    dispatch(clearCart());
   };
 
   const paymentMethods = [
@@ -39,7 +59,7 @@ export default function Cart({ onToggleDock, isExpanded = true }: CartProps) {
         <div className="flex items-center justify-between">
           <div>
             <h2 className="font-bold" style={{ color: '#111827', fontSize: '16px', marginBottom: '2px' }}>Current Order</h2>
-            <p style={{ color: '#9ca3af', fontSize: '13px' }}>{state.items.length} items in cart</p>
+            <p style={{ color: '#9ca3af', fontSize: '13px' }}>{items.length} items in cart</p>
           </div>
           <div className="flex items-center" style={{ gap: '8px' }}>
             {onToggleDock && (
@@ -65,7 +85,7 @@ export default function Cart({ onToggleDock, isExpanded = true }: CartProps) {
 
       {/* Cart Items */}
       <div className="flex-1 overflow-y-auto" style={{ padding: '16px' }}>
-        {state.items.length === 0 ? (
+        {items.length === 0 ? (
           <div className="flex flex-col items-center justify-center" style={{ paddingTop: '48px', paddingBottom: '48px' }}>
             <div className="rounded-full flex items-center justify-center" style={{ width: '80px', height: '80px', backgroundColor: '#f3f4f6', marginBottom: '16px' }}>
               <ShoppingBag style={{ width: '40px', height: '40px', color: '#d1d5db' }} />
@@ -75,7 +95,7 @@ export default function Cart({ onToggleDock, isExpanded = true }: CartProps) {
           </div>
         ) : (
           <ul className="space-y-4">
-            {state.items.map((item) => (
+            {items.map((item) => (
               <li 
                 key={item.product.id} 
                 className="flex gap-4 p-4 rounded-xl transition-colors"
@@ -92,21 +112,21 @@ export default function Cart({ onToggleDock, isExpanded = true }: CartProps) {
                   <div className="flex items-center gap-2 mt-2">
                     <div className="flex items-center rounded-lg" style={{ backgroundColor: 'white', border: '1px solid #e5e7eb' }}>
                       <button
-                        onClick={() => updateQuantity(item.product.id, item.quantity - 1)}
+                        onClick={() => handleUpdateQuantity(item.product.id, item.quantity - 1)}
                         className="p-1.5 hover:bg-gray-100 rounded-l-lg transition-colors"
                       >
                         <Minus className="w-3 h-3 text-gray-600" />
                       </button>
                       <span className="text-sm font-semibold w-8 text-center text-gray-900">{item.quantity}</span>
                       <button
-                        onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
+                        onClick={() => handleUpdateQuantity(item.product.id, item.quantity + 1)}
                         className="p-1.5 hover:bg-gray-100 rounded-r-lg transition-colors"
                       >
                         <Plus className="w-3 h-3 text-gray-600" />
                       </button>
                     </div>
                     <button
-                      onClick={() => removeItem(item.product.id)}
+                      onClick={() => handleRemoveItem(item.product.id)}
                       className="p-1.5 hover:bg-red-100 rounded-lg text-red-500 ml-auto transition-colors"
                     >
                       <Trash2 className="w-4 h-4" />
@@ -149,25 +169,25 @@ export default function Cart({ onToggleDock, isExpanded = true }: CartProps) {
         <div className="rounded-lg" style={{ backgroundColor: 'white', border: '1px solid #e5e7eb', padding: '14px', marginBottom: '14px' }}>
           <div className="flex justify-between" style={{ fontSize: '13px', marginBottom: '8px' }}>
             <span style={{ color: '#9ca3af' }}>Subtotal</span>
-            <span className="font-semibold" style={{ color: '#111827' }}>${getSubtotal().toFixed(2)}</span>
+            <span className="font-semibold" style={{ color: '#111827' }}>${subtotal.toFixed(2)}</span>
           </div>
           <div className="flex justify-between" style={{ fontSize: '13px', marginBottom: '10px' }}>
             <span style={{ color: '#9ca3af' }}>Tax (10%)</span>
-            <span className="font-semibold" style={{ color: '#111827' }}>${getTax().toFixed(2)}</span>
+            <span className="font-semibold" style={{ color: '#111827' }}>${tax.toFixed(2)}</span>
           </div>
           <div className="flex justify-between font-bold" style={{ borderTop: '1px solid #f3f4f6', paddingTop: '10px', fontSize: '15px' }}>
             <span style={{ color: '#111827' }}>Total</span>
-            <span style={{ color: '#6366f1' }}>${getTotal().toFixed(2)}</span>
+            <span style={{ color: '#6366f1' }}>${total.toFixed(2)}</span>
           </div>
         </div>
 
         {/* Action Buttons */}
         <div className="flex" style={{ gap: '10px' }}>
           <button
-            onClick={clearCart}
+            onClick={handleClearCart}
             className="flex-1 rounded-lg font-semibold transition-all"
             style={{ padding: '12px', backgroundColor: 'white', border: '1px solid #e5e7eb', color: '#374151', fontSize: '13px' }}
-            disabled={state.items.length === 0}
+            disabled={items.length === 0}
           >
             Clear
           </button>
@@ -177,11 +197,11 @@ export default function Cart({ onToggleDock, isExpanded = true }: CartProps) {
             style={{ 
               padding: '12px',
               fontSize: '13px',
-              background: state.items.length === 0 ? '#d1d5db' : 'linear-gradient(135deg, #6366f1, #8b5cf6)', 
+              background: items.length === 0 ? '#d1d5db' : 'linear-gradient(135deg, #6366f1, #8b5cf6)', 
               color: 'white', 
-              boxShadow: state.items.length === 0 ? 'none' : '0 4px 12px rgba(99, 102, 241, 0.3)' 
+              boxShadow: items.length === 0 ? 'none' : '0 4px 12px rgba(99, 102, 241, 0.3)' 
             }}
-            disabled={state.items.length === 0}
+            disabled={items.length === 0}
           >
             Checkout
           </button>

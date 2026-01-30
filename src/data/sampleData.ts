@@ -1,4 +1,4 @@
-import type { Product, Category } from '../types';
+import type { Product, Category, Customer } from '../types';
 
 // Sample categories
 export const categories: Category[] = [
@@ -23,4 +23,13 @@ export const products: Product[] = [
   { id: '10', name: 'Ice Cream', price: 4.50, category: 'Desserts', stock: 45, barcode: '010' },
   { id: '11', name: 'Cake Slice', price: 5.99, category: 'Desserts', stock: 20, barcode: '011' },
   { id: '12', name: 'Cookie', price: 1.25, category: 'Desserts', stock: 100, barcode: '012' },
+];
+
+// Sample customers
+export const customers: Customer[] = [
+  { id: '1', name: 'John Doe', email: 'john@example.com', phone: '+1 234-567-8901', address: '123 Main St, City' },
+  { id: '2', name: 'Jane Smith', email: 'jane@example.com', phone: '+1 234-567-8902', address: '456 Oak Ave, Town' },
+  { id: '3', name: 'Bob Johnson', email: 'bob@example.com', phone: '+1 234-567-8903', address: '789 Pine Rd, Village' },
+  { id: '4', name: 'Alice Brown', email: 'alice@example.com', phone: '+1 234-567-8904', address: '321 Elm St, City' },
+  { id: '5', name: 'Charlie Wilson', email: 'charlie@example.com', phone: '+1 234-567-8905', address: '654 Maple Dr, Town' },
 ];
